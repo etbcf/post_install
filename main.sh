@@ -19,6 +19,10 @@ sudo dnf install -y neovim vim-enhanced tmux git python3-pip libappindicator \
     @virtualization steam-devices fastfetch gnome-shell-extension-appindicator \
     gnome-shell-extension-dash-to-dock
 
+echo "🔧 Enabling appindicator and dash to dock..."
+gnome-extensions enable appindicatorsupport@rgcjonas.gmail.com
+gnome-extensions enable dash-to-dock@micxgx.gmail.com
+
 echo "📦 Installing Flatpak apps..."
 flatpak install flathub -y \
     org.signal.Signal org.videolan.VLC com.bitwarden.desktop io.missioncenter.MissionCenter \
