@@ -97,7 +97,7 @@ sudo dnf install -y /tmp/dropbox.rpm || {
 }
 
 echo "▶️ Launching Dropbox — a browser window should open for login..."
-dropbox start -i >/dev/null 2>&1 &
+dropbox start -i >/dev/null 2>&1
 
 echo "👉 Please log in through the browser, then press ENTER to continue..."
 read -r
