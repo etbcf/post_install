@@ -81,7 +81,13 @@ sudo dnf install -y code
 
 echo "🔧 Enabling AppIndicator / KStatusNotifierItem support..."
 sudo dnf install -y gnome-shell-extension-appindicator
-gnome-extensions enable appindicator-support@rgcjonas.gmail.com || true
+EXT_ID=$(gnome-extensions list | grep appindicator)
+if [ -n "$EXT_ID" ]; then
+    gnome-extensions enable "$EXT_ID"
+    echo "AppIndicator enabled. You may need to restart GNOME Shell (Alt+F2 → r → Enter) or log out/in."
+else
+    echo "❌ AppIndicator extension not found"
+fi
 
 echo "📥 Installing Dropbox..."
 curl -L -o /tmp/dropbox.rpm "https://www.dropbox.com/download?dl=packages/fedora/nautilus-dropbox-2025.05.20-1.fc42.x86_64.rpm"
@@ -94,7 +100,7 @@ echo "▶️ Launching Dropbox — a browser window should open for login..."
 dropbox start -i >/dev/null 2>&1 &
 
 echo "👉 Please log in through the browser, then press ENTER to continue..."
-read
+read -r
 
 echo "🛑 Killing Dropbox to finalize setup..."
 pkill dropbox || true
