@@ -47,11 +47,11 @@ echo "🔌 Installing vim-plug for Vim..."
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 echo "📥 Cloning dotfiles..."
-git clone --depth 1 https://github.com/etbcf/post_install.git /tmp/post-install
-mv /tmp/post-install/.vimrc "$HOME/.vimrc"
+git clone --depth 1 https://github.com/etbcf/post_install.git /tmp/post_install
+mv /tmp/post_install/.vimrc "$HOME/.vimrc"
 mkdir -p "$HOME/.config"
-mv /tmp/post-install/nvim "$HOME/.config/nvim"
-mv /tmp/post-install/.tmux.conf "$HOME/.tmux.conf"
+mv /tmp/post_install/nvim "$HOME/.config/nvim"
+mv /tmp/post_install/.tmux.conf "$HOME/.tmux.conf"
 
 echo "📧 Configuring Git..."
 read -rp "Enter your Git email: " git_email
