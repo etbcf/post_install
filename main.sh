@@ -18,6 +18,11 @@ sudo dnf install -y neovim vim-enhanced tmux git python3-pip libappindicator \
     fzf uv ruff the_silver_searcher trash-cli gnome-tweaks python3-gpg \
     @virtualization steam-devices fastfetch
 
+echo "📦 Installing Flatpak apps..."
+flatpak install flathub -y \
+    org.signal.Signal org.videolan.VLC com.bitwarden.desktop io.missioncenter.MissionCenter \
+    com.valvesoftware.Steam com.mattjakeman.ExtensionManager com.github.neithern.g4music
+
 echo "🔧 Opening AppIndicator support page in your browser..."
 xdg-open "https://extensions.gnome.org/extension/615/appindicator-support/" >/dev/null 2>&1
 echo "👉 Please install AppIndicator and then press ENTER to continue..."
@@ -27,11 +32,6 @@ echo "🔧 Opening Dash to Dock extension page in your browser..."
 xdg-open "https://extensions.gnome.org/extension/307/dash-to-dock/" >/dev/null 2>&1
 echo "👉 Please install Dash to Dock and then press ENTER to continue..."
 read -r
-
-echo "📦 Installing Flatpak apps..."
-flatpak install flathub -y \
-    org.signal.Signal org.videolan.VLC com.bitwarden.desktop io.missioncenter.MissionCenter \
-    com.valvesoftware.Steam com.mattjakeman.ExtensionManager com.github.neithern.g4music
 
 echo "🔧 Enabling fzf keybindings..."
 grep -qxF 'eval "$(fzf --bash)"' "$HOME/.bashrc" || echo 'eval "$(fzf --bash)"' >>"$HOME/.bashrc"
