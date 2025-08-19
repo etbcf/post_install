@@ -16,7 +16,8 @@ sudo dnf config-manager setopt fedora-cisco-openh264.enabled=1
 echo "🧰 Installing essential tools..."
 sudo dnf install -y neovim vim-enhanced tmux git python3-pip libappindicator \
     fzf uv ruff the_silver_searcher trash-cli gnome-tweaks python3-gpg \
-    @virtualization steam-devices fastfetch
+    @virtualization steam-devices fastfetch gnome-shell-extension-appindicator \
+    gnome-shell-extension-dash-to-dock
 
 echo "📦 Installing Flatpak apps..."
 flatpak install flathub -y \
@@ -79,16 +80,6 @@ EOF
 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install -y code
 
-echo "🔧 Enabling AppIndicator / KStatusNotifierItem support..."
-sudo dnf install -y gnome-shell-extension-appindicator
-EXT_ID=$(gnome-extensions list | grep appindicator)
-if [ -n "$EXT_ID" ]; then
-    gnome-extensions enable "$EXT_ID"
-    echo "AppIndicator enabled. You may need to restart GNOME Shell (Alt+F2 → r → Enter) or log out/in."
-else
-    echo "❌ AppIndicator extension not found"
-fi
-
 echo "📥 Installing Dropbox..."
 curl -L -o /tmp/dropbox.rpm "https://www.dropbox.com/download?dl=packages/fedora/nautilus-dropbox-2025.05.20-1.fc42.x86_64.rpm"
 sudo dnf install -y /tmp/dropbox.rpm || {
@@ -97,7 +88,7 @@ sudo dnf install -y /tmp/dropbox.rpm || {
 }
 
 echo "▶️ Launching Dropbox — a browser window should open for login..."
-dropbox start -i >/dev/null 2>&1
+dropbox start -i >/dev/null 2>&1 &
 
 echo "👉 Please log in through the browser, then press ENTER to continue..."
 read -r
