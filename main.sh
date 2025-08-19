@@ -99,7 +99,7 @@ sudo dnf install -y /tmp/dropbox.rpm || {
 echo "▶️ Launching Dropbox — a browser window should open for login..."
 dropbox start -i >/dev/null 2>&1 &
 
-echo "👉 Please log in through the browser, then press ENTER to continue..."
+echo "👉 Please log in through the browser, and then press ENTER to continue..."
 read -r
 
 echo "🛑 Killing Dropbox to finalize setup..."
@@ -107,7 +107,10 @@ pkill dropbox || true
 sleep 2
 
 echo "🔄 Restarting Dropbox..."
-dropbox start
+dropbox start -i >/dev/null 2>&1 &
+
+echo "👉 Please connect through the browser, and then press ENTER to continue..."
+read -r
 
 echo "✅ Dropbox installed and running!"
 
