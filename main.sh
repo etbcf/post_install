@@ -119,14 +119,7 @@ curl -sS https://starship.rs/install.sh | sh
 [ -f "$HOME/.bashrc" ] || touch "$HOME/.bashrc"
 
 # Add Starship init only once
-grep -qxF 'eval "$(starship init bash)"' "$HOME/.bashrc" ||
-    echo 'eval "$(starship init bash)"' >>"$HOME/.bashrc"
-
-# Source ~/.bashrc safely
-# Temporarily disable -u so sourcing doesn't fail on unset variables
-set +u
-source "$HOME/.bashrc"
-set -u
+grep -qxF 'eval "$(starship init bash)"' "$HOME/.bashrc" || echo 'eval "$(starship init bash)"' >>"$HOME/.bashrc"
 
 echo "🖼️ Setting GNOME default wallpaper..."
 LIGHT_WALLPAPER="/usr/share/backgrounds/gnome/blobs-l.svg"
