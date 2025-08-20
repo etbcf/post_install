@@ -121,6 +121,9 @@ curl -sS https://starship.rs/install.sh | sh
 # Add Starship init only once
 grep -qxF 'eval "$(starship init bash)"' "$HOME/.bashrc" || echo 'eval "$(starship init bash)"' >>"$HOME/.bashrc"
 
+# Reload bashrc so Starship takes effect immediately
+source "$HOME/.bashrc"
+
 echo "🖼️ Setting GNOME default wallpaper..."
 LIGHT_WALLPAPER="/usr/share/backgrounds/gnome/blobs-l.svg"
 DARK_WALLPAPER="/usr/share/backgrounds/gnome/blobs-d.svg"
