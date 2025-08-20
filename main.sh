@@ -18,6 +18,19 @@ sudo dnf install -y neovim vim-enhanced tmux git python3-pip libappindicator \
     fzf uv ruff the_silver_searcher trash-cli gnome-tweaks python3-gpg \
     @virtualization steam-devices fastfetch
 
+echo "🔄 Restarting Firefox..."
+# Kill all running Firefox processes
+pkill -x firefox || true
+
+# Give it a moment to close cleanly
+sleep 2
+
+# Relaunch Firefox in the background
+nohup firefox >/dev/null 2>&1 &
+disown
+
+echo "✅ Firefox restarted!"
+
 echo "📦 Upgrading pip and instaling debugpy...."
 pip install --upgrade pip
 pip install debugpy
