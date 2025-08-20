@@ -172,6 +172,5 @@ echo "✅ Dropbox installed and running!"
 
 echo "✅ Installation finished!"
 echo "🔄 Reloading shell so changes take effect (Starship, fzf, etc.)..."
-exec bash
-
 echo "🎉 All done! You may want to reboot now."
+exec bash
