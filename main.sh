@@ -51,7 +51,7 @@ echo "👉 Please install Dash to Dock and then press ENTER to continue..."
 read -r
 
 echo "🔧 Opening Night Them Switcher extension page in your browser..."
-xdb-open "https://extensions.gnome.org/extension/2236/night-theme-switcher/"
+xdg-open "https://extensions.gnome.org/extension/2236/night-theme-switcher/"
 echo "👉 Please install Night Theme Switcher and then press ENTER to continue..."
 read -r
 
