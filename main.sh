@@ -170,6 +170,42 @@ fi
 
 echo "✅ Dropbox installed and running!"
 
+echo "📧 Installing Thunderbird..."
+
+# Defining vars
+TB_URL="https://download.mozilla.org/?product=thunderbird-142.0-SSL&os=linux64&lang=pt-PT"
+TB_TAR="/tmp/thunderbird-142.0.tar.xz"
+
+# Download Thunderbird tarball
+curl -L -o "$TB_TAR" "$TB_URL"
+
+# Extract to /opt
+sudo tar -xJf "$TB_TAR" -C /opt
+
+# Clean up
+rm -f "$TB_TAR"
+
+# Create desktop entry (user-level)
+cat <<EOF | sudo tee ~/.local/share/applications/thunderbird.desktop >/dev/null
+[Desktop Entry]
+Name=Thunderbird
+Exec=/opt/thunderbird/thunderbird
+Icon=/opt/thunderbird/chrome/icons/default/default128.png
+Type=Application
+Categories=Network;Email;
+StartupNotify=true
+MimeType=x-scheme-handler/mailto;
+EOF
+
+echo "✅ Thunderbird installed!!!"
+
+echo "▶️ Launching Thunderbird for initial setup..."
+/opt/thunderbird/thunderbird >/dev/null 2>&1 &
+
+echo "👉 Please log in to your Thunderbird account(s)."
+echo "👉 When you are finished, press ENTER to continue..."
+read -r
+
 echo "✅ Installation finished!"
 echo "🔄 Reloading shell so changes take effect (Starship, fzf, etc.)..."
 echo "🎉 All done! You may want to reboot now."
