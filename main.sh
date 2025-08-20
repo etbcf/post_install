@@ -112,6 +112,27 @@ dropbox start -i >/dev/null 2>&1 &
 echo "👉 Please connect through the browser, and then press ENTER to continue..."
 read -r
 
+echo "📦 Installing starship prompt..."
+curl -sS https://starship.rs/install.sh | sh
+
+# Ensure ~/.bashrc exists
+[ -f "$HOME/.bashrc" ] || touch "$HOME/.bashrc"
+
+# Add Starship init only once
+grep -qxF 'eval "$(starship init bash)"' "$HOME/.bashrc" || echo 'eval "$(starship init bash)"' >>"$HOME/.bashrc"
+
+echo "🖼️ Setting GNOME default wallpaper..."
+LIGHT_WALLPAPER="/usr/share/backgrounds/gnome/blobs-l.svg"
+DARK_WALLPAPER="/usr/share/backgrounds/gnome/blobs-d.svg"
+
+if [ -f "$LIGHT_WALLPAPER" ] && [ -f "$DARK_WALLPAPER" ]; then
+    gsettings set org.gnome.desktop.background picture-uri "file://$LIGHT_WALLPAPER"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file://$DARK_WALLPAPER"
+    echo "✅ Wallpaper set to GNOME blobs"
+else
+    echo "⚠️ GNOME wallpapers not found in /usr/share/backgrounds/gnome/"
+fi
+
 echo "✅ Dropbox installed and running!"
 
 echo "🎉 All done! You may want to reboot now."
