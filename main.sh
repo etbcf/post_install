@@ -18,6 +18,10 @@ sudo dnf install -y neovim vim-enhanced tmux git python3-pip libappindicator \
     fzf uv ruff the_silver_searcher trash-cli gnome-tweaks python3-gpg \
     @virtualization steam-devices fastfetch
 
+echo "📦 Upgrading pip and instaling debugpy...."
+pip install --upgrade pip
+pip install debugpy
+
 echo "📦 Installing Flatpak apps..."
 flatpak install flathub -y \
     org.signal.Signal org.videolan.VLC com.bitwarden.desktop io.missioncenter.MissionCenter \
@@ -33,8 +37,20 @@ xdg-open "https://extensions.gnome.org/extension/307/dash-to-dock/" >/dev/null 2
 echo "👉 Please install Dash to Dock and then press ENTER to continue..."
 read -r
 
+echo "🔧 Opening Night Them Switcher extension page in your browser..."
+xdb-open "https://extensions.gnome.org/extension/2236/night-theme-switcher/"
+echo "👉 Please install Night Theme Switcher and then press ENTER to continue..."
+read -r
+
 echo "🔧 Enabling fzf keybindings..."
 grep -qxF 'eval "$(fzf --bash)"' "$HOME/.bashrc" || echo 'eval "$(fzf --bash)"' >>"$HOME/.bashrc"
+
+echo "🔧 Enabling custom functions (mkcd, mkgit, mkclone)..."
+# Ensure ~/.bashrc exists
+[ -f "$HOME/.bashrc" ] || touch "$HOME/.bashrc"
+
+# Add source line only once
+grep -qxF 'source /usr/local/bin/functions' "$HOME/.bashrc" || echo 'source /usr/local/bin/functions' >>"$HOME/.bashrc"
 
 echo "🔣 Installing FiraCode Nerd Font..."
 mkdir -p ~/.fonts
@@ -134,5 +150,9 @@ else
 fi
 
 echo "✅ Dropbox installed and running!"
+
+echo "✅ Installation finished!"
+echo "🔄 Reloading shell so changes take effect (Starship, fzf, etc.)..."
+exec bash
 
 echo "🎉 All done! You may want to reboot now."
