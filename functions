@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# Create a directory and change into it
+function mkcd() {
+	mkdir "$1" && cd "$1" || return
+}
+
+# Create a directory, change into it, and initialize a git repository
+function mkgit() {
+	mkdir "$1" && cd "$1" && git init
+}
+
+# Clone a git repository and change into the cloned directory
+function mkclone() {
+	# Clone the repository
+	git clone "$1" || return 1
+
+	# Extract the directory name from the URL
+	repo_name=$(basename "$1" .git)
+
+	# Change into the cloned directory
+	cd "$repo_name" || return 1
+}

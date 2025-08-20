@@ -16,7 +16,7 @@ sudo dnf config-manager setopt fedora-cisco-openh264.enabled=1
 echo "🧰 Installing essential tools..."
 sudo dnf install -y neovim vim-enhanced tmux git python3-pip libappindicator \
     fzf uv ruff the_silver_searcher trash-cli gnome-tweaks python3-gpg \
-    @virtualization steam-devices fastfetch
+    @virtualization steam-devices fastfetch xclip
 
 echo "🔄 Restarting Firefox..."
 # Kill all running Firefox processes
@@ -91,6 +91,12 @@ mv /tmp/post_install/.vimrc "$HOME/.vimrc"
 mkdir -p "$HOME/.config"
 mv /tmp/post_install/nvim "$HOME/.config/nvim"
 mv /tmp/post_install/.tmux.conf "$HOME/.tmux.conf"
+
+echo "🔧 Adding TMUX attacher and some useful scripts to /usr/local/bin/..."
+sudo install -m 755 /tmp/post_install/tat /usr/local/bin/tat
+sudo install -m 755 /tmp/post_install/functions /usr/local/bin/functions
+
+echo "source /usr/local/bin/functions" >>"$HOME/.bashrc"
 
 echo "📧 Configuring Git..."
 read -rp "Enter your Git email: " git_email
