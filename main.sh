@@ -2,12 +2,6 @@
 
 set -euo pipefail
 
-# Make this script executable
-chmod +x "$0"
-
-# Make the second script executable
-chmod +x /home/$USER/post_install/dash-to-dock-config.sh
-
 echo "📦 Updating system..."
 sudo dnf upgrade --refresh -y
 echo "✅ System updated!"
