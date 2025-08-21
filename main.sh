@@ -16,7 +16,7 @@ sudo dnf config-manager setopt fedora-cisco-openh264.enabled=1
 echo "🧰 Installing essential tools..."
 sudo dnf install -y neovim vim-enhanced tmux git python3-pip libappindicator \
     fzf uv ruff the_silver_searcher trash-cli gnome-tweaks python3-gpg \
-    @virtualization steam-devices fastfetch xclip
+    @virtualization steam-devices fastfetch xclip gnome-shell-extension-dash-to-dock
 
 echo "🔄 Restarting Firefox..."
 # Kill all running Firefox processes
@@ -43,11 +43,6 @@ flatpak install flathub -y \
 echo "🔧 Opening AppIndicator support page in your browser..."
 xdg-open "https://extensions.gnome.org/extension/615/appindicator-support/" >/dev/null 2>&1
 echo "👉 Please install AppIndicator and then press ENTER to continue..."
-read -r
-
-echo "🔧 Opening Dash to Dock extension page in your browser..."
-xdg-open "https://extensions.gnome.org/extension/307/dash-to-dock/" >/dev/null 2>&1
-echo "👉 Please install Dash to Dock and then press ENTER to continue..."
 read -r
 
 echo "🔧 Opening Night Them Switcher extension page in your browser..."
