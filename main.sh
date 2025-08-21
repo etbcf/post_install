@@ -209,7 +209,7 @@ mkdir -p "$AUTOSTART_DIR"
 cat >"$AUTOSTART_DIR/dash-to-dock-config.desktop" <<EOF
 [Desktop Entry]
 Type=Application
-Exec=gnome-terminal -- bash -c "\$HOME/post_install/dash-to-dock-config.sh; rm -f \$HOME/.config/autostart/dash-to-dock-config.desktop"
+Exec=$HOME/post_install/dash-to-dock-launch.sh
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
