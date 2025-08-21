@@ -41,15 +41,27 @@ flatpak install flathub -y \
     org.signal.Signal org.videolan.VLC com.bitwarden.desktop io.missioncenter.MissionCenter \
     com.valvesoftware.Steam com.mattjakeman.ExtensionManager com.github.neithern.g4music
 
-echo "🔧 Opening AppIndicator support page in your browser..."
-xdg-open "https://extensions.gnome.org/extension/615/appindicator-support/" >/dev/null 2>&1
-echo "👉 Please install AppIndicator and then press ENTER to continue..."
-read -r
+# Check if AppIndicator extension is installed
+APPINDICATOR_ID="615"
+if ! gnome-extensions list | grep -q "appindicatorsupport@$APPINDICATOR_ID"; then
+    echo "🔧 Opening AppIndicator support page in your browser..."
+    xdg-open "https://extensions.gnome.org/extension/615/appindicator-support/" >/dev/null 2>&1
+    echo "👉 Please install AppIndicator and then press ENTER to continue..."
+    read -r
+else
+    echo "✅ AppIndicator already installed."
+fi
 
-echo "🔧 Opening Night Them Switcher extension page in your browser..."
-xdg-open "https://extensions.gnome.org/extension/2236/night-theme-switcher/"
-echo "👉 Please install Night Theme Switcher and then press ENTER to continue..."
-read -r
+# Check if Night Theme Switcher extension is installed
+NIGHT_THEME_ID="2236"
+if ! gnome-extensions list | grep -q "night-theme-switcher@$NIGHT_THEME_ID"; then
+    echo "🔧 Opening Night Theme Switcher extension page in your browser..."
+    xdg-open "https://extensions.gnome.org/extension/2236/night-theme-switcher/" >/dev/null 2>&1
+    echo "👉 Please install Night Theme Switcher and then press ENTER to continue..."
+    read -r
+else
+    echo "✅ Night Theme Switcher already installed."
+fi
 
 echo "🔧 Enabling fzf keybindings..."
 grep -qxF 'eval "$(fzf --bash)"' "$HOME/.bashrc" || echo 'eval "$(fzf --bash)"' >>"$HOME/.bashrc"
@@ -82,11 +94,14 @@ echo "🔌 Installing vim-plug for Vim..."
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 echo "📥 Cloning dotfiles..."
-git clone --depth 1 https://github.com/etbcf/post_install.git /tmp/post_install
-mv /tmp/post_install/.vimrc "$HOME/.vimrc"
+TMP_DIR="/tmp/post_install"
+[ -d "$TMP_DIR" ] && rm -rf "$TMP_DIR"
+git clone --depth 1 https://github.com/etbcf/post_install.git "$TMP_DIR"
+
+mv "$TMP_DIR/.vimrc" "$HOME/.vimrc"
 mkdir -p "$HOME/.config"
-mv /tmp/post_install/nvim "$HOME/.config/nvim"
-mv /tmp/post_install/.tmux.conf "$HOME/.tmux.conf"
+mv "$TMP_DIR/nvim" "$HOME/.config/nvim"
+mv "$TMP_DIR/.tmux.conf" "$HOME/.tmux.conf"
 
 echo "🔧 Adding TMUX attacher and some useful scripts to /usr/local/bin/..."
 sudo install -m 755 /tmp/post_install/tat /usr/local/bin/tat
