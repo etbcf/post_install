@@ -4,9 +4,9 @@
 Programs I like to use. 
 Since it is a regular task for me, making it a script was a must.
 
-### Objectives
+## Objectives
 - [X] Install all programs I use
-- [X} Tweak the system to my liking - WIP
+- [X] Tweak the system to my liking - WIP
 - [X] Learning
 - [ ] Maybe create a easier way to do it, without intervention
 - [ ] A TUI with checkboxes would be nice
