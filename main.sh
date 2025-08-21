@@ -19,18 +19,46 @@ sudo dnf install -y neovim vim-enhanced tmux git python3-pip libappindicator \
     fzf uv ruff the_silver_searcher trash-cli gnome-tweaks python3-gpg \
     @virtualization steam-devices fastfetch xclip gnome-shell-extension-dash-to-dock
 
-echo "🔄 Restarting Firefox..."
-# Kill all running Firefox processes
-pkill -x firefox || true
+# --- Function to check GNOME extensions ---
+check_gnome_extension() {
+    local EXT_NAME="$1"
+    local EXT_UUID="$2"
+    local EXT_URL="$3"
+    local FLAG_FILE="$HOME/.local/.${EXT_NAME}_installed"
 
-# Give it a moment to close cleanly
-sleep 2
+    # If extension already flagged as installed, skip
+    if [[ -f "$FLAG_FILE" ]]; then
+        echo "✅ $EXT_NAME already installed (cached), skipping."
+        return
+    fi
 
-# Relaunch Firefox in the background
-nohup firefox >/dev/null 2>&1 &
-disown
+    # Check if extension is installed
+    if gnome-extensions list | grep -q "$EXT_UUID"; then
+        echo "✅ $EXT_NAME installed."
+        touch "$FLAG_FILE"
+        return
+    fi
 
-echo "✅ Firefox restarted!"
+    # Only open browser if Firefox is NOT running
+    if ! pgrep -x "firefox" >/dev/null; then
+        echo "🔧 Opening $EXT_NAME extension page in your browser..."
+        xdg-open "$EXT_URL" >/dev/null 2>&1
+    else
+        echo "🔄 Firefox is running. Please close it before installing $EXT_NAME."
+    fi
+
+    echo "👉 Please install $EXT_NAME and then press ENTER to continue..."
+    read -r
+
+    # Flag as installed so next run won’t ask
+    touch "$FLAG_FILE"
+}
+
+# --- Check GNOME extensions ---
+check_gnome_extension "appindicatorsupport" "appindicatorsupport@rgcjonas.gmail.com" \
+    "https://extensions.gnome.org/extension/615/appindicator-support/"
+check_gnome_extension "night-theme-switcher" "nightthemeswitcher@romainvigier.fr" \
+    "https://extensions.gnome.org/extension/2236/night-theme-switcher/"
 
 echo "📦 Upgrading pip and instaling debugpy...."
 pip install --upgrade pip
@@ -41,27 +69,7 @@ flatpak install flathub -y \
     org.signal.Signal org.videolan.VLC com.bitwarden.desktop io.missioncenter.MissionCenter \
     com.valvesoftware.Steam com.mattjakeman.ExtensionManager com.github.neithern.g4music
 
-# Check if AppIndicator extension is installed
-APPINDICATOR_ID="615"
-if ! gnome-extensions list | grep -q "appindicatorsupport@$APPINDICATOR_ID"; then
-    echo "🔧 Opening AppIndicator support page in your browser..."
-    xdg-open "https://extensions.gnome.org/extension/615/appindicator-support/" >/dev/null 2>&1
-    echo "👉 Please install AppIndicator and then press ENTER to continue..."
-    read -r
-else
-    echo "✅ AppIndicator already installed."
-fi
-
-# Check if Night Theme Switcher extension is installed
-NIGHT_THEME_ID="2236"
-if ! gnome-extensions list | grep -q "night-theme-switcher@$NIGHT_THEME_ID"; then
-    echo "🔧 Opening Night Theme Switcher extension page in your browser..."
-    xdg-open "https://extensions.gnome.org/extension/2236/night-theme-switcher/" >/dev/null 2>&1
-    echo "👉 Please install Night Theme Switcher and then press ENTER to continue..."
-    read -r
-else
-    echo "✅ Night Theme Switcher already installed."
-fi
+echo "✅ All done!"
 
 echo "🔧 Enabling fzf keybindings..."
 grep -qxF 'eval "$(fzf --bash)"' "$HOME/.bashrc" || echo 'eval "$(fzf --bash)"' >>"$HOME/.bashrc"
@@ -98,27 +106,47 @@ TMP_DIR="/tmp/post_install"
 [ -d "$TMP_DIR" ] && rm -rf "$TMP_DIR"
 git clone --depth 1 https://github.com/etbcf/post_install.git "$TMP_DIR"
 
-mv "$TMP_DIR/.vimrc" "$HOME/.vimrc"
-mkdir -p "$HOME/.config"
-mv "$TMP_DIR/nvim" "$HOME/.config/nvim"
-mv "$TMP_DIR/.tmux.conf" "$HOME/.tmux.conf"
+echo "🔧 Installing dotfiles..."
 
-echo "🔧 Adding TMUX attacher and some useful scripts to /usr/local/bin/..."
-sudo install -m 755 /tmp/post_install/tat /usr/local/bin/tat
-sudo install -m 755 /tmp/post_install/functions /usr/local/bin/functions
+# .vimrc
+if [ ! -f "$HOME/.vimrc" ]; then
+    mv "$TMP_DIR/.vimrc" "$HOME/.vimrc"
+else
+    echo "⚠️  Skipping .vimrc (already exists)"
+fi
+
+# nvim config
+if [ ! -d "$HOME/.config/nvim" ]; then
+    mkdir -p "$HOME/.config"
+    mv "$TMP_DIR/nvim" "$HOME/.config/nvim"
+else
+    echo "⚠️  Skipping nvim config (already exists)"
+fi
+
+# .tmux.conf
+if [ ! -f "$HOME/.tmux.conf" ]; then
+    mv "$TMP_DIR/.tmux.conf" "$HOME/.tmux.conf"
+else
+    echo "⚠️  Skipping .tmux.conf (already exists)"
+fi
 
 echo "source /usr/local/bin/functions" >>"$HOME/.bashrc"
 
 echo "📧 Configuring Git..."
-read -rp "Enter your Git email: " git_email
-git_name=$(whoami)
-cat >"$HOME/.gitconfig" <<EOF
+if [ ! -f "$HOME/.gitconfig" ]; then
+    read -rp "Enter your Git email: " git_email
+    git_name=$(whoami)
+    cat >"$HOME/.gitconfig" <<EOF
 [user]
     name = $git_name
     email = $git_email
 [init]
     defaultBranch = main
 EOF
+    echo "✅ Git configured!"
+else
+    echo "⚠️  Skipping Git config (.gitconfig already exists)"
+fi
 
 echo "💻 Installing Visual Studio Code..."
 cat <<EOF | sudo tee /etc/yum.repos.d/vscode.repo >/dev/null
@@ -136,30 +164,39 @@ sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install -y code
 
 echo "📥 Installing Dropbox..."
-curl -L -o /tmp/dropbox.rpm "https://www.dropbox.com/download?dl=packages/fedora/nautilus-dropbox-2025.05.20-1.fc42.x86_64.rpm"
-sudo dnf install -y /tmp/dropbox.rpm || {
-    echo "❌ Dropbox installation failed"
-    exit 1
-}
+if rpm -q nautilus-dropbox >/dev/null 2>&1; then
+    echo "⚠️  Skipping Dropbox (already installed)"
+else
+    curl -L -o /tmp/dropbox.rpm "https://www.dropbox.com/download?dl=packages/fedora/nautilus-dropbox-2025.05.20-1.fc42.x86_64.rpm"
+    if sudo dnf install -y /tmp/dropbox.rpm; then
+        echo "✅ Dropbox installed!"
 
-echo "▶️ Launching Dropbox — a browser window should open for login..."
-dropbox start -i >/dev/null 2>&1 &
+        echo "▶️ Launching Dropbox — a browser window should open for login..."
+        dropbox start -i >/dev/null 2>&1 &
 
-echo "👉 Please log in through the browser, and then press ENTER to continue..."
-read -r
+        echo "👉 Please log in through the browser, and then press ENTER to continue..."
+        read -r
 
-echo "🛑 Killing Dropbox to finalize setup..."
-pkill dropbox || true
-sleep 2
+        echo "🛑 Killing Dropbox to finalize setup..."
+        pkill dropbox || true
+        sleep 2
 
-echo "🔄 Restarting Dropbox..."
-dropbox start -i >/dev/null 2>&1 &
-
-echo "👉 Please connect through the browser, and then press ENTER to continue..."
-read -r
+        echo "🔄 Restarting Dropbox..."
+        dropbox start -i >/dev/null 2>&1 &
+        echo "👉 Please connect through the browser, and then press ENTER to continue..."
+        read -r
+    else
+        echo "❌ Dropbox installation failed"
+    fi
+fi
 
 echo "📦 Installing starship prompt..."
-curl -sS https://starship.rs/install.sh | sh
+if command -v starship >/dev/null 2>&1; then
+    echo "⚠️  Skipping Starship (already installed)"
+else
+    curl -sS https://starship.rs/install.sh | sh -s -- -y
+    echo "✅ Starship installed!"
+fi
 
 # Ensure ~/.bashrc exists
 [ -f "$HOME/.bashrc" ] || touch "$HOME/.bashrc"
@@ -183,21 +220,26 @@ echo "✅ Dropbox installed and running!"
 
 echo "📧 Installing Thunderbird..."
 
-# Defining vars
-TB_URL="https://download.mozilla.org/?product=thunderbird-142.0-SSL&os=linux64&lang=pt-PT"
-TB_TAR="/tmp/thunderbird-142.0.tar.xz"
+# Path check (Thunderbird already installed?)
+if [ -d "/opt/thunderbird" ] || [ -f "$HOME/.local/share/applications/thunderbird.desktop" ]; then
+    echo "⚠️  Skipping Thunderbird (already installed)"
+else
+    # Defining vars
+    TB_URL="https://download.mozilla.org/?product=thunderbird-142.0-SSL&os=linux64&lang=pt-PT"
+    TB_TAR="/tmp/thunderbird-142.0.tar.xz"
 
-# Download Thunderbird tarball
-curl -L -o "$TB_TAR" "$TB_URL"
+    # Download Thunderbird tarball
+    curl -L -o "$TB_TAR" "$TB_URL"
 
-# Extract to /opt
-sudo tar -xJf "$TB_TAR" -C /opt
+    # Extract to /opt
+    sudo tar -xJf "$TB_TAR" -C /opt
 
-# Clean up
-rm -f "$TB_TAR"
+    # Clean up
+    rm -f "$TB_TAR"
 
-# Create desktop entry (user-level)
-cat <<EOF | sudo tee ~/.local/share/applications/thunderbird.desktop >/dev/null
+    # Create desktop entry (user-level)
+    mkdir -p "$HOME/.local/share/applications"
+    cat <<EOF >"$HOME/.local/share/applications/thunderbird.desktop"
 [Desktop Entry]
 Name=Thunderbird
 Exec=/opt/thunderbird/thunderbird
@@ -208,14 +250,17 @@ StartupNotify=true
 MimeType=x-scheme-handler/mailto;
 EOF
 
+    echo "✅ Thunderbird installed!!!"
+
+    echo "▶️ Launching Thunderbird for initial setup..."
+    /opt/thunderbird/thunderbird >/dev/null 2>&1 &
+
+    echo "👉 Please log in to your Thunderbird account(s)."
+    echo "👉 When you are finished, press ENTER to continue..."
+    read -r
+fi
+
 echo "✅ Thunderbird installed!!!"
-
-echo "▶️ Launching Thunderbird for initial setup..."
-/opt/thunderbird/thunderbird >/dev/null 2>&1 &
-
-echo "👉 Please log in to your Thunderbird account(s)."
-echo "👉 When you are finished, press ENTER to continue..."
-read -r
 
 # Path to the autostart entry
 AUTOSTART_DIR="$HOME/.config/autostart"
