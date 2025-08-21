@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+gnome-extensions enable dash-to-dock@micxgx.gmail.com
+
 # --- Posição e centralização ---
 gsettings set org.gnome.shell.extensions.dash-to-dock dock-position 'BOTTOM'
 gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed true
