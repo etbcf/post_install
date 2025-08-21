@@ -96,12 +96,39 @@ echo "🔧 Enabling custom functions (mkcd, mkgit, mkclone)..."
 # Add source line only once
 grep -qxF 'source /usr/local/bin/functions' "$HOME/.bashrc" || echo 'source /usr/local/bin/functions' >>"$HOME/.bashrc"
 
+# If we get here, font is not installed
 echo "🔣 Installing FiraCode Nerd Font..."
-mkdir -p ~/.fonts
-curl -L -o /tmp/FiraCode.zip https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.zip
-unzip -o /tmp/FiraCode.zip -d ~/.fonts
-fc-cache -fv
-rm /tmp/FiraCode.zip
+
+FONT_DIR="$HOME/.fonts"
+FIRACODE_DIR="$FONT_DIR/FiraCode"
+FIRACODE_ZIP="/tmp/FiraCode.zip"
+FIRACODE_TMP="/tmp/FiraCode-extract"
+
+if [[ -d "$FIRACODE_DIR" && -n "$(find "$FIRACODE_DIR" -name '*.ttf' -print -quit)" ]]; then
+    echo "✅ FiraCode Nerd Font already installed, skipping."
+else
+    echo "🔣 Installing FiraCode Nerd Font..."
+    mkdir -p "$FIRACODE_DIR"
+    rm -rf "$FIRACODE_TMP"
+    mkdir -p "$FIRACODE_TMP"
+
+    # Download to /tmp
+    curl -L -o "$FIRACODE_ZIP" https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.zip
+
+    # Extract to temporary dir
+    unzip -q "$FIRACODE_ZIP" -d "$FIRACODE_TMP"
+
+    # Move all extracted files into ~/.fonts/FiraCode
+    mv "$FIRACODE_TMP"/* "$FIRACODE_DIR"/
+
+    # Refresh font cache only for this folder
+    fc-cache -f "$FIRACODE_DIR" >/dev/null
+
+    # Cleanup
+    rm -rf "$FIRACODE_ZIP" "$FIRACODE_TMP"
+
+    echo "✅ FiraCode Nerd Font installed to $FIRACODE_DIR"
+fi
 
 echo "🔒 Enabling firewall..."
 sudo systemctl enable --now firewalld
@@ -291,11 +318,17 @@ fi
 
 echo "✅ Thunderbird installed!!!"
 
-# Path to the autostart entry
 AUTOSTART_DIR="$HOME/.config/autostart"
+AUTOSTART_FILE="$AUTOSTART_DIR/dash-to-dock-config.desktop"
+
 mkdir -p "$AUTOSTART_DIR"
 
-cat >"$AUTOSTART_DIR/dash-to-dock-config.desktop" <<EOF
+if [[ -f "$AUTOSTART_FILE" ]]; then
+    echo "⚠️  Dash-to-Dock autostart is already configured."
+    echo "👉 If you want to reapply settings, delete:"
+    echo "   $AUTOSTART_FILE"
+else
+    cat >"$AUTOSTART_FILE" <<EOF
 [Desktop Entry]
 Type=Application
 Exec=$HOME/post_install/dash-to-dock-launch.sh
@@ -306,5 +339,6 @@ Name=Dash-to-Dock Config
 Comment=Runs the dash-to-dock configuration script once at login
 EOF
 
-echo "✅ Dash-to-Dock configuration will run automatically at next login."
-echo "👉 Please log out and log back in."
+    echo "✅ Dash-to-Dock configuration will run automatically at next login."
+    echo "👉 Please log out and log back in."
+fi
