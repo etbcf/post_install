@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
+
 set -euo pipefail
+
+# Make this script executable
+chmod +x "$0"
+
+# Make the second script executable
+chmod +x /home/$USER/post_install/dash-to-dock-config.sh
 
 echo "📦 Updating system..."
 sudo dnf upgrade --refresh -y
@@ -201,7 +208,20 @@ echo "👉 Please log in to your Thunderbird account(s)."
 echo "👉 When you are finished, press ENTER to continue..."
 read -r
 
-echo "✅ Installation finished!"
-echo "🔄 Reloading shell so changes take effect (Starship, fzf, etc.)..."
-echo "🎉 All done! You may want to reboot now."
-exec bash
+# Path to the autostart entry
+AUTOSTART_DIR="$HOME/.config/autostart"
+mkdir -p "$AUTOSTART_DIR"
+
+cat >"$AUTOSTART_DIR/dash-to-dock-config.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Exec=gnome-terminal -- bash -c "\$HOME/post_install/dash-to-dock-config.sh; rm -f \$HOME/.config/autostart/dash-to-dock-config.desktop"
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=Dash-to-Dock Config
+Comment=Runs the dash-to-dock configuration script once at login
+EOF
+
+echo "✅ Dash-to-Dock configuration will run automatically at next login."
+echo "👉 Please log out and log back in."
