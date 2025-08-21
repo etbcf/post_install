@@ -19,47 +19,6 @@ sudo dnf install -y neovim vim-enhanced tmux git python3-pip libappindicator \
     fzf uv ruff the_silver_searcher trash-cli gnome-tweaks python3-gpg \
     @virtualization steam-devices fastfetch xclip gnome-shell-extension-dash-to-dock
 
-# --- Function to check GNOME extensions ---
-check_gnome_extension() {
-    local EXT_NAME="$1"
-    local EXT_UUID="$2"
-    local EXT_URL="$3"
-    local FLAG_FILE="$HOME/.local/.${EXT_NAME}_installed"
-
-    # If extension already flagged as installed, skip
-    if [[ -f "$FLAG_FILE" ]]; then
-        echo "✅ $EXT_NAME already installed (cached), skipping."
-        return
-    fi
-
-    # Check if extension is installed
-    if gnome-extensions list | grep -q "$EXT_UUID"; then
-        echo "✅ $EXT_NAME installed."
-        touch "$FLAG_FILE"
-        return
-    fi
-
-    # Only open browser if Firefox is NOT running
-    if ! pgrep -x "firefox" >/dev/null; then
-        echo "🔧 Opening $EXT_NAME extension page in your browser..."
-        xdg-open "$EXT_URL" >/dev/null 2>&1
-    else
-        echo "🔄 Firefox is running. Please close it before installing $EXT_NAME."
-    fi
-
-    echo "👉 Please install $EXT_NAME and then press ENTER to continue..."
-    read -r
-
-    # Flag as installed so next run won’t ask
-    touch "$FLAG_FILE"
-}
-
-# --- Check GNOME extensions ---
-check_gnome_extension "appindicatorsupport" "appindicatorsupport@rgcjonas.gmail.com" \
-    "https://extensions.gnome.org/extension/615/appindicator-support/"
-check_gnome_extension "night-theme-switcher" "nightthemeswitcher@romainvigier.fr" \
-    "https://extensions.gnome.org/extension/2236/night-theme-switcher/"
-
 echo "📦 Upgrading pip and instaling debugpy...."
 pip install --upgrade pip
 pip install debugpy
@@ -69,7 +28,63 @@ flatpak install flathub -y \
     org.signal.Signal org.videolan.VLC com.bitwarden.desktop io.missioncenter.MissionCenter \
     com.valvesoftware.Steam com.mattjakeman.ExtensionManager com.github.neithern.g4music
 
-echo "✅ All done!"
+# --- First run flags ---
+FIRST_RUN_FLAG="$HOME/.local/.post_install_first_run"
+EXTENSIONS_DIR="$HOME/.local"
+
+# --- Function to handle Firefox update on first run ---
+update_firefox_first_run() {
+    if [[ ! -f "$FIRST_RUN_FLAG" ]]; then
+        if pgrep -x "firefox" >/dev/null; then
+            echo "🔄 Closing Firefox for update..."
+            pkill -x "firefox"
+            sleep 2 # Give it a moment to close
+        fi
+        # Mark first run done
+        touch "$FIRST_RUN_FLAG"
+    fi
+}
+
+# --- Function to check GNOME extensions ---
+check_gnome_extension() {
+    local EXT_NAME="$1"
+    local EXT_UUID="$2"
+    local EXT_URL="$3"
+    local FLAG_FILE="$EXTENSIONS_DIR/.${EXT_NAME}_installed"
+
+    # Skip if extension already installed
+    if [[ -f "$FLAG_FILE" ]]; then
+        echo "✅ $EXT_NAME already installed, skipping."
+        return
+    fi
+
+    # Check if extension is actually installed
+    if gnome-extensions list | grep -q "$EXT_UUID"; then
+        echo "✅ $EXT_NAME installed."
+        touch "$FLAG_FILE"
+        return
+    fi
+
+    # Open extension page for user to install
+    echo "🔧 Opening $EXT_NAME extension page in your browser..."
+    xdg-open "$EXT_URL" >/dev/null 2>&1
+
+    echo "👉 Please install $EXT_NAME and press ENTER to continue..."
+    read -r
+
+    # Mark as installed so next run skips
+    touch "$FLAG_FILE"
+}
+
+# --- Run Firefox update check ---
+update_firefox_first_run
+
+# --- Check GNOME extensions ---
+check_gnome_extension "appindicatorsupport" "appindicatorsupport@rgcjonas.gmail.com" \
+    "https://extensions.gnome.org/extension/615/appindicator-support/"
+
+check_gnome_extension "night-theme-switcher" "nightthemeswitcher@romainvigier.fr" \
+    "https://extensions.gnome.org/extension/2236/night-theme-switcher/"
 
 echo "🔧 Enabling fzf keybindings..."
 grep -qxF 'eval "$(fzf --bash)"' "$HOME/.bashrc" || echo 'eval "$(fzf --bash)"' >>"$HOME/.bashrc"
@@ -130,7 +145,21 @@ else
     echo "⚠️  Skipping .tmux.conf (already exists)"
 fi
 
-echo "source /usr/local/bin/functions" >>"$HOME/.bashrc"
+# --- TMUX attacher and functions ---
+echo "🔧 Moving TMUX attacher and helper scripts to /usr/local/bin..."
+
+for file in tat functions; do
+    if [[ -f "$TMP_DIR/$file" ]]; then
+        if [[ ! -f "/usr/local/bin/$file" ]]; then
+            sudo mv "$TMP_DIR/$file" /usr/local/bin/
+            sudo chmod +x /usr/local/bin/$file
+            sudo chown root:root /usr/local/bin/$file
+            echo "✅ Moved $file to /usr/local/bin"
+        else
+            echo "⚠️  Skipping $file (already exists in /usr/local/bin)"
+        fi
+    fi
+done
 
 echo "📧 Configuring Git..."
 if [ ! -f "$HOME/.gitconfig" ]; then
